@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Emotion Predictor</title>
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes spin-grow {
+      0% { transform: rotate(0deg) scale(0.5); opacity: 0.5; }
+      50% { transform: rotate(180deg) scale(1); opacity: 1; }
+      100% { transform: rotate(360deg) scale(0.5); opacity: 0.5; }
+    }
+    .animate-spin-grow { animation: spin-grow 2s linear infinite; }
+
+    input[type="file"]::file-selector-button {
+      font-weight: 600;
+      color: #F1F5F9;
+      background-color: #6366F1;
+      padding: 0.75rem 1rem;
+      border-radius: 0.375rem;
+      border-width: 0;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+      margin-right: 1rem;
+    }
+    input[type="file"]::file-selector-button:hover { background-color: #4F46E5; }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'dark-background': '#020617',
+            'dark-surface': '#1E293B',
+            'dark-border': '#334155',
+            'dark-text': '#F1F5F9',
+            'dark-muted': '#94A3B8',
+            'dark-primary': '#6366F1',
+            'dark-primary-hover': '#4F46E5',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-dark-background text-dark-text font-sans antialiased flex flex-col min-h-screen items-center py-10">
+  <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <header class="flex flex-col sm:flex-row justify-between items-center w-full mb-8 space-y-4 sm:space-y-0">
+      <div class="text-center sm:text-left">
+        <h1 class="text-3xl font-heading font-extrabold text-dark-text tracking-tight">Emotion Predictor 🤖</h1>
+        <p class="text-dark-muted mt-1">Analyze social media posts, text, or audio files for emotion.</p>
+      </div>
+    </header>
+
+    <main class="grid lg:grid-cols-2 gap-8 w-full">
+
+      <div class="space-y-6">
+        <!-- Social Media Post Section -->
+        <div class="bg-dark-surface border border-dark-border rounded-lg p-6 shadow-xl">
+          <label class="block text-sm font-medium text-dark-muted mb-2" for="ig-url">Social Media Post URL</label>
+          <input id="ig-url" class="w-full px-4 py-3 bg-dark-background border border-dark-border rounded-md text-dark-text placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-dark-primary" type="text" placeholder="https://www.instagram.com/p/..." />
+          <div class="flex space-x-3 mt-4">
+            <button id="process-url" class="flex-1 py-3 bg-dark-primary hover:bg-dark-primary-hover text-white font-semibold rounded-md transition-colors duration-200">Process URL</button>
+            <button id="clear-url" class="flex-1 py-3 text-dark-muted hover:text-dark-text border border-dark-border rounded-md transition-colors duration-200">Clear</button>
+          </div>
+        </div>
+
+        <!-- Caption-only Section -->
+        <div class="bg-dark-surface border border-dark-border rounded-lg p-6 shadow-xl">
+          <label class="block text-sm font-medium text-dark-muted mb-2" for="caption-text">Or paste caption text</label>
+          <textarea id="caption-text" class="w-full h-40 px-4 py-3 bg-dark-background border border-dark-border rounded-md text-dark-text placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-dark-primary resize-none" placeholder="Paste caption here..."></textarea>
+          <div class="flex space-x-3 mt-4">
+            <button id="process-text" class="flex-1 py-3 bg-dark-primary hover:bg-dark-primary-hover text-white font-semibold rounded-md transition-colors duration-200">Predict Caption</button>
+            <button id="clear-text" class="flex-1 py-3 text-dark-muted hover:text-dark-text border border-dark-border rounded-md transition-colors duration-200">Clear</button>
+          </div>
+        </div>
+
+        <!-- Audio Section -->
+        <div class="bg-dark-surface border border-dark-border rounded-lg p-6 shadow-xl">
+          <label class="block text-sm font-medium text-dark-muted mb-2" for="audio-file">Or upload an audio file</label>
+          <input id="audio-file" class="w-full text-sm text-dark-muted" type="file" accept="audio/*" />
+          <div class="flex space-x-3 mt-4">
+            <button id="process-audio" class="flex-1 py-3 bg-dark-primary hover:bg-dark-primary-hover text-white font-semibold rounded-md transition-colors duration-200">Process Audio</button>
+            <button id="clear-audio" class="flex-1 py-3 text-dark-muted hover:text-dark-text border border-dark-border rounded-md transition-colors duration-200">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unified Results -->
+      <aside class="space-y-6 relative">
+        <div class="bg-dark-surface border border-dark-border rounded-lg p-6 shadow-xl h-full flex flex-col relative overflow-hidden">
+          <div id="loader-area" class="absolute inset-0 bg-dark-surface/90 flex items-center justify-center rounded-lg backdrop-blur-sm hidden z-20">
+            <div class="flex flex-col items-center">
+              <div class="relative h-16 w-16">
+                <div class="absolute h-full w-full border-4 border-t-4 border-t-dark-primary border-dark-border rounded-full animate-spin"></div>
+                <div class="absolute h-full w-full border-4 border-t-4 border-t-dark-muted border-dark-border rounded-full animate-spin-grow"></div>
+              </div>
+              <p id="loader-text" class="mt-4 text-dark-muted text-sm font-medium">Analyzing sentiment...</p>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto" id="results-container">
+            <h2 class="text-xl font-heading font-semibold text-dark-text mb-3">Preview</h2>
+            <div id="caption-preview" class="text-dark-muted leading-relaxed max-h-60 overflow-y-auto">No content processed yet.</div>
+
+            <div class="mt-8">
+              <h3 class="text-xl font-heading font-semibold text-dark-text mb-3">Media Preview</h3>
+              <div id="media-area">
+                <img id="scraped-image" src="" alt="Scraped post media" class="w-full max-w-sm mx-auto rounded-lg shadow-lg hidden"/>
+                <div id="media-placeholder" class="text-dark-muted">No media found.</div>
+              </div>
+            </div>
+
+            <!-- Unified Predictions -->
+            <div class="mt-8">
+              <h3 class="text-xl font-heading font-semibold text-dark-primary mb-3">Final Emotion Predictions</h3>
+              <div id="final-pred-list" class="space-y-4">
+                <div class="text-dark-muted">No predictions yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="mt-8 w-full text-center text-xs text-dark-muted">
+      Frontend: HTML / Tailwind CSS / JS • Backend: FastAPI + Transformers + Keras
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

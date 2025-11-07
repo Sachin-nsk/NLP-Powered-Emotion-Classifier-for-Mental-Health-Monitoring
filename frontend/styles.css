@@ -1,0 +1,320 @@
+/* styles.css — complete viewport-fitting, fixed-column, equal-height UI with stable scrolling
+   - Put theme class "theme-dark" or "theme-light" on the <html> or <body> element (JS toggles documentElement classes).
+   - Apply class "height-equal" to the two main left input cards you want to match the right result card height.
+*/
+
+/* ---------- Configuration / variables ---------- */
+:root{
+  --left-width: 520px;
+  --right-width: 440px;
+  --gap: 22px;
+  --container-max: 1200px;
+  --container-pad: 20px;
+  --card-radius: 14px;
+  --accent-a: #5eead4;
+  --accent-b: #818cf8;
+  --shadow-soft: 0 10px 30px rgba(2,6,23,0.45);
+  --shadow-deep: 0 18px 50px rgba(2,6,23,0.55);
+  --ui-transition: 220ms cubic-bezier(.2,.8,.2,1);
+  --font-main: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  --topbar-h: 84px;
+  --viewport-pad-vertical: 24px;
+  --card-gap: 16px;
+}
+
+/* ---------- Light / Dark theme variables ---------- */
+.theme-light {
+  --bg: linear-gradient(180deg,#f7fbff,#eef6ff);
+  --surface: rgba(255,255,255,0.96);
+  --card-border: rgba(11,27,43,0.06);
+  --muted: #475569;
+  --text: #0f172a;
+  --input-bg: rgba(255,255,255,0.92);
+  --panel-glow: rgba(129,140,248,0.06);
+  --fill-bg: #eef2ff;
+  --loader-ring: rgba(11,27,43,0.06);
+}
+.theme-dark {
+  --bg: linear-gradient(160deg,#071226,#06102a);
+  --surface: rgba(255,255,255,0.03);
+  --card-border: rgba(255,255,255,0.06);
+  --muted: #94a3b8;
+  --text: #e6eef8;
+  --input-bg: rgba(255,255,255,0.02);
+  --panel-glow: rgba(94,198,255,0.05);
+  --fill-bg: rgba(255,255,255,0.02);
+  --loader-ring: rgba(255,255,255,0.07);
+}
+
+/* ---------- Base ---------- */
+html,body{
+  height:100%;
+  margin:0;
+  font-family:var(--font-main);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background: var(--bg);
+  color: var(--text);
+  box-sizing:border-box;
+}
+
+/* Prevent whole-page vertical scroll on desktop; internal areas will scroll.
+   Responsive CSS below will allow page scroll on small screens. */
+body { overflow: hidden; }
+
+/* ---------- Page / centered container ---------- */
+.page{
+  height: 100vh;
+  display:flex;
+  align-items:start;                   /* topbar anchored to top */
+  justify-content:center;
+  padding: var(--viewport-pad-vertical) 18px;
+  box-sizing:border-box;
+}
+
+.container{
+  width: 90vw;                          /* user requested 90% width */
+  max-width: var(--container-max);
+  padding: var(--container-pad);
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  align-items:center;
+  height: calc(100vh - (var(--viewport-pad-vertical) * 2));
+}
+
+/* ---------- Topbar: fixed height, matched width ---------- */
+.topbar{
+  height: var(--topbar-h);
+  width: calc(var(--left-width) + var(--right-width) + var(--gap));
+  max-width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:14px 18px;
+  border-radius:var(--card-radius);
+  background: var(--surface);
+  border:1px solid var(--card-border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px) saturate(120%);
+  box-sizing:border-box;
+}
+
+/* Title */
+.title-group h1 { margin:0; font-size:20px; }
+.tagline { margin-top:6px; color:var(--muted); font-size:13px; }
+
+/* ---------- Main grid: fixed columns and fills remaining container height ---------- */
+.main-grid{
+  width: calc(var(--left-width) + var(--right-width) + var(--gap));
+  max-width: 100%;
+  display:grid;
+  grid-template-columns: var(--left-width) var(--right-width);
+  gap: var(--gap);
+  align-items:stretch;
+  box-sizing:border-box;
+
+  /* take remaining height below topbar */
+  height: calc(100% - var(--topbar-h) - 18px);
+}
+
+/* Columns */
+.col {
+  display:flex;
+  flex-direction:column;
+  gap: var(--card-gap);
+  align-items:stretch;
+  height:100%;
+  box-sizing:border-box;
+}
+
+/* ---------- Card baseline ---------- */
+.card{
+  background: var(--surface);
+  border-radius: var(--card-radius);
+  padding: 14px;
+  border:1px solid var(--card-border);
+  box-shadow: var(--shadow-soft);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  box-sizing:border-box;
+}
+
+/* Force specific cards to fill column height:
+   - left main input cards: add class "height-equal"
+   - right result card: class "result-card" is expected */
+.left-col > .card.height-equal,
+.right-col > .card.result-card {
+  height: 100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  box-sizing:border-box;
+  min-height: 0; /* critical for flex children to allow internal scrolling */
+}
+
+/* If a card needs internal scroll: add class .scrollable to that card */
+.card.scrollable { overflow:auto; }
+
+/* ---------- Inputs ---------- */
+.label{ display:block; font-size:13px; color:var(--muted); margin-bottom:8px; }
+.input, .textarea {
+  width:100%;
+  max-width: 460px;   /* constrained to avoid whole-column stretch */
+  padding:10px 12px;
+  border-radius:12px;
+  background: var(--input-bg);
+  border:1px solid rgba(0,0,0,0.04);
+  color:var(--text);
+  font-size:15px;
+  outline:none;
+  transition: box-shadow var(--ui-transition), border-color var(--ui-transition);
+  box-sizing:border-box;
+}
+.input:focus, .textarea:focus { box-shadow: 0 6px 24px var(--panel-glow); border-color: var(--accent-b); }
+.textarea { min-height:120px; resize:vertical; }
+
+/* Controls row */
+.controls-row{ display:flex; gap:12px; align-items:center; justify-content:flex-start; margin-top:12px; }
+.btn{ padding:10px 14px; border-radius:12px; border:none; cursor:pointer; font-weight:700; font-size:14px; }
+.btn.primary{ background: linear-gradient(90deg,var(--accent-a),var(--accent-b)); color:#042027; box-shadow:0 10px 30px rgba(129,140,248,0.12); }
+.btn.ghost{ background:transparent; border:1px solid var(--card-border); color:var(--text); }
+
+/* ---------- RIGHT: result card stable layout ---------- */
+.result-card {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  box-sizing:border-box;
+  min-height: 0; /* allow internal children to scroll instead of expanding parent */
+}
+
+/* Top area: caption preview + loader */
+.result-top {
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  flex: 0 0 auto; /* don't let this section grow to push card height */
+}
+
+/* Caption preview: fixed-ish internal area with scrolling */
+.caption-preview {
+  background: var(--fill-bg);
+  padding:12px;
+  border-radius:12px;
+  overflow-y:auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size:15px;
+  line-height:1.4;
+  border:1px solid rgba(0,0,0,0.02);
+  color:var(--text);
+
+  /* allocate a reasonable preferred height inside the card */
+  flex: 0 1 34%;   /* prefers ~34% of card but can shrink */
+  min-height: 80px;
+  max-height: 36vh;
+  box-sizing:border-box;
+}
+
+/* Ensure left side of result-top stretches properly */
+.result-top > div { flex:1 1 auto; min-width:0; }
+
+/* Loader area fixed */
+.loader-area { width:56px; height:56px; flex: 0 0 auto; display:flex; align-items:center; justify-content:center; }
+
+/* Loader visuals */
+.loader {
+  width:44px; height:44px; border-radius:50%;
+  border:5px solid var(--loader-ring);
+  border-top-color:var(--accent-b);
+  animation:spin 1s linear infinite;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+@keyframes spin { to{ transform: rotate(360deg); } }
+
+/* ---------- Predictions area: occupies remaining card space and scrolls internally ---------- */
+.predictions { display:flex; flex-direction:column; gap:8px; flex: 1 1 auto; min-height:0; }
+.pred-list {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:6px;
+  overflow-y:auto;
+  padding-right:6px;
+  box-sizing:border-box;
+  flex:1 1 auto;
+  min-height:0;
+}
+
+/* prediction row */
+.pred {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,0.03);
+  background:transparent;
+}
+
+/* label + bar */
+.pred .left { display:flex; flex-direction:column; gap:8px; flex:1; min-width:0; }
+.pred .label { font-weight:700; color:var(--muted); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* progress bar */
+.prob-bar { height:12px; background:var(--fill-bg); border-radius:999px; overflow:hidden; width:100%; border:1px solid rgba(0,0,0,0.03); }
+.prob-fill { height:100%; width:0%; border-radius:999px; transition: width 500ms cubic-bezier(.2,.85,.32,1); box-shadow: inset 0 4px 18px rgba(2,6,23,0.06); background:linear-gradient(90deg,var(--accent-a),var(--accent-b)); }
+.prob-value { min-width:64px; text-align:right; font-weight:700; color:var(--muted); }
+
+/* ---------- Media area pinned near bottom of card ---------- */
+.media { flex: 0 0 auto; margin-top:6px; }
+.media-area { display:flex; gap:10px; flex-wrap:wrap; max-width:100%; align-items:flex-start; }
+.media-thumb { width:92px; height:92px; flex:0 0 92px; border-radius:12px; overflow:hidden; border:1px solid var(--card-border); background:#0b1220; }
+.media-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* ---------- Status / small helpers ---------- */
+.status { display:flex; gap:12px; align-items:center; }
+.model-status { font-weight:600; color:var(--muted); }
+.health-dot { width:12px; height:12px; border-radius:50%; box-shadow:0 6px 18px rgba(0,0,0,0.08); background:#facc15; }
+
+/* ---------- Stable fill classes for consistent label colors ---------- */
+.fill-0{ background: linear-gradient(90deg,#ffd166,#ff6b6b); }
+.fill-1{ background: linear-gradient(90deg,#60a5fa,#7c3aed); }
+.fill-2{ background: linear-gradient(90deg,#34d399,#10b981); }
+.fill-3{ background: linear-gradient(90deg,#f97316,#fb7185); }
+.fill-4{ background: linear-gradient(90deg,#60a5fa,#06b6d4); }
+.fill-5{ background: linear-gradient(90deg,#f472b6,#fb7185); }
+.fill-6{ background: linear-gradient(90deg,#a78bfa,#60a5fa); }
+.fill-7{ background: linear-gradient(90deg,#facc15,#f97316); }
+
+/* Empty placeholder */
+.empty { color:var(--muted); opacity:0.9; }
+
+/* ---------- Responsive fallback for small screens: allow page scroll ---------- */
+@media (max-width:1000px) {
+  body { overflow: auto; } /* allow vertical page scroll on smaller devices */
+  .container { width:95vw; padding:14px; height:auto; }
+  .topbar, .main-grid { width:100%; }
+  .main-grid { grid-template-columns: 1fr; gap:14px; height:auto; }
+  .col { height:auto; }
+  .left-col > .card.height-equal, .right-col > .card.result-card { height:auto; }
+  .caption-preview { max-height:160px; }
+  .pred-list { max-height:220px; }
+  .input, .textarea { max-width:100%; }
+}
+
+/* ---------- Notes ----------
+1) Add class "height-equal" to the two main left input cards so they match the right result card height:
+   <div class="card input-card height-equal"> ... </div>
+
+2) The main grid and topbar widths are matched so the topbar does not appear wider than the columns.
+
+3) All overflow happens inside child areas (caption-preview, pred-list, media-area) — the parent card height remains constant.
+
+4) For stable color assignment, in JS set one of the .fill-N classes on each .prob-fill element before setting its width.
+
+*/
