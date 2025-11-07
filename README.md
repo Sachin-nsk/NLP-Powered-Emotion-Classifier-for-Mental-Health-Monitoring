@@ -51,6 +51,7 @@ python -m venv venv
 # On macOS/Linux:
 source venv/bin/activate
 ```
+### 🔹 2. Install Dependencies and Run Backend
 ```bash
 # Navigate to the backend directory
 cd backend
@@ -63,6 +64,10 @@ pip install -r requirements.txt
 #Run the Backend Server
 uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
+### 🔹 3. Run the Frontend
 ```bash
-#Run the Frontend
-index.html
+# Navigate to the frontend directory
+cd frontend
+
+# Open index.html in your browser
+
